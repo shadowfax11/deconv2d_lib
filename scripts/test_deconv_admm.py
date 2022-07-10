@@ -1,6 +1,5 @@
 import os, sys
 import numpy as np
-from skimage import restoration
 from scipy.io import loadmat
 sys.path.append("../")
 from src.utils_python.convolve2d import Convolve2DFFT
