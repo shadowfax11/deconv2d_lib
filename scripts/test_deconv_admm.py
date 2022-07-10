@@ -2,15 +2,16 @@ import os, sys
 import numpy as np
 from skimage import restoration
 from scipy.io import loadmat
+sys.path.append("../")
 from src.utils_python.convolve2d import Convolve2DFFT
 from src.utils_python.utils import clip, calc_snr
 from src.methods_python import admm
 import matplotlib.pyplot as plt
 from skimage.metrics import structural_similarity as ssim
 
-DATA_DIR = './data/test_scenes/'
+DATA_DIR = '../data/test_scenes/'
 DATA_STR = 'cameraman.mat'
-PSF_DIR = './data/test_psfs/'
+PSF_DIR = '../data/test_psfs/'
 PSF_STR = 'psf_double_gaussian.mat'
 NOISE_LVL = 0.01
 
@@ -52,8 +53,8 @@ im2 = ax2.imshow(b)
 ax2.set_title('Image\nSNR={:2.3f}dB'.format(calc_snr(b, b_orig)))
 fh1.colorbar(im2, ax=ax2)
 ax3 = plt.subplot(2,2,4)
-im3 = ax3.imshow(x)
-ax3.set_title('Scene Reconstructed\nSNR={:2.3f}dB'.format(calc_snr(x_est, pad2d(x))))
+im3 = ax3.imshow(x_est)
+ax3.set_title('Scene Reconstructed\nSNR={:2.3f}dB, SSIM={:.3f}'.format(calc_snr(x_est, pad2d(x)),ssim(crop2d(x_est), x)))
 fh1.colorbar(im3, ax=ax3)
 print("Image restored, SNR=%3.3f dB, SSIM=%2.3f"%(calc_snr(x_est, pad2d(x)),ssim(crop2d(x_est), x)))
 plt.show()

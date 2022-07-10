@@ -153,13 +153,13 @@ def admm_ls_2dtv_l1(b, h, optim=None, s_init=None, disp_info=None):
     rho_w = 1
     rho_q = 1
 
-    u_mult = 1/(CtC + rho_u)
-    F_mult = 1/(rho_u*HtH + rho_v*PsiTPsi + rho_w + rho_q)
+    u_mult = 1./(CtC + rho_u)
+    F_mult = 1./(rho_u*HtH + rho_v*PsiTPsi + rho_w + rho_q)
 
     # initialize
     s_old = s_init
     Hs_old = Hfor(s_old)
-    Dx_s_old, Dy_s_old = Psi(s_old)
+    Dy_s_old, Dx_s_old = Psi(s_old)
 
     dual_u_old = s_old
     dual_vy_old = s_old
@@ -178,17 +178,17 @@ def admm_ls_2dtv_l1(b, h, optim=None, s_init=None, disp_info=None):
         # v-update
         vy_new = shrinkageOp(Dy_s_old + dual_vy_old/rho_v, lambda_TV/rho_v)
         vx_new = shrinkageOp(Dx_s_old + dual_vx_old/rho_v, lambda_TV/rho_v)
-        
+
         # w-update
-        w_new = np.max(s_old + dual_w_old/rho_w, 0)
+        w_new = np.maximum(s_old + dual_w_old/rho_w, 0)
 
         # q-update
         q_new = shrinkageOp(s_old + dual_q_old/rho_q, lambda_L1/rho_q)
 
         # s-update
         r_new = rho_u*Hadj(u_new - dual_u_old/rho_u) + \
-            rho_v*PsiT(vy_new - dual_vx_old/rho_v, vx_new - dual_vy_old/rho_v) + \
-            (rho_w*w_new - dual_u_old) + \
+            rho_v*PsiT(vy_new - dual_vy_old/rho_v, vx_new - dual_vx_old/rho_v) + \
+            (rho_w*w_new - dual_w_old) + \
             (rho_q*q_new - dual_q_old)
         s_new = FiltX2(F_mult, r_new)
 
@@ -198,7 +198,7 @@ def admm_ls_2dtv_l1(b, h, optim=None, s_init=None, disp_info=None):
         dual_u_new = dual_u_old + rho_u*rpU
 
         # dual_v update
-        Dx_s_new, Dy_s_new = Psi(s_new)
+        Dy_s_new, Dx_s_new = Psi(s_new)
         rpVy = Dy_s_new - vy_new
         rpVx = Dx_s_new - vx_new
         dual_vy_new = dual_vy_old + rho_v*rpVy
@@ -220,11 +220,11 @@ def admm_ls_2dtv_l1(b, h, optim=None, s_init=None, disp_info=None):
         f_alt[iter-1] = 0.5*np.linalg.norm(crop2d(b)-crop2d(u_new),ord='fro')**2 + \
                         lambda_TV*np.sum(np.sum(np.abs(vy_new)) + np.sum(np.abs(vx_new))) + \
                         lambda_L1*np.sum(np.abs(q_new))
-        
+
         # primal residuals update
         prim_res_u[iter-1] = np.sqrt(np.sum(rpU**2))
         prim_res_v[iter-1] = np.sqrt(np.sum(rpVy**2)+np.sum(rpVx**2))
-        prim_res_w[iter-1] = np.sqrt(np.sum(rpVy**2))
+        prim_res_w[iter-1] = np.sqrt(np.sum(rpW**2))
         prim_res_q[iter-1] = np.sqrt(np.sum(rpQ**2))
 
         # dual residuals update
@@ -239,9 +239,9 @@ def admm_ls_2dtv_l1(b, h, optim=None, s_init=None, disp_info=None):
         rho_w, rho_w_update = muUpdater(rho_w,prim_res_w[iter-1],dual_res_w[iter-1],resid_tol,tau_inc,tau_dec)
         rho_q, rho_q_update = muUpdater(rho_q,prim_res_q[iter-1],dual_res_q[iter-1],resid_tol,tau_inc,tau_dec)
         if rho_u_update or rho_v_update or rho_w_update or rho_q_update:
-            u_mult = 1/(CtC + rho_u)
-            F_mult = 1/(rho_u*HtH + rho_v*PsiTPsi + rho_w + rho_q)
-            print(rho_u, rho_v, rho_w, rho_q)
+            u_mult = 1./(CtC + rho_u)
+            F_mult = 1./(rho_u*HtH + rho_v*PsiTPsi + rho_w + rho_q)
+            print("{0:.3f} {1:.3f} {2:.3f} {3:.3f}".format(rho_u, rho_v, rho_w, rho_q))
         else:
             u_mult = 1./(CtC + rho_u)
 

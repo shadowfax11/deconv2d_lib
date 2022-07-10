@@ -165,22 +165,23 @@ while iter < MAX_ITERS
     
     % u-update
     u_new = u_mult.*(b + rho_u*Hs_old + dual_u_old);
-    
+
     % v-update
     vy_new = shrinkageOp(Dy_s_old + dual_vy_old/rho_v, lambda_TV/rho_v);
     vx_new = shrinkageOp(Dx_s_old + dual_vx_old/rho_v, lambda_TV/rho_v);
-    
+
     % w-update
     w_new = max(s_old + dual_w_old/rho_w, 0);
-    
+
     % q-update
     q_new = shrinkageOp(s_old + dual_q_old/rho_q, lambda_L1/rho_q);
-    
+
     % s-update
     r_new = rho_u*Hadj(u_new - dual_u_old/rho_u) + ...
             rho_v*PsiT(vy_new - dual_vy_old/rho_v, vx_new - dual_vx_old/rho_v) + ...
             (rho_w*w_new - dual_w_old) + ...
             (rho_q*q_new - dual_q_old);
+
     s_new = FiltX2(F_mult, r_new);
     
     % dual_u update
@@ -217,7 +218,7 @@ while iter < MAX_ITERS
     prim_res_v(iter) = sqrt(norm(rpVy(:))^2 + norm(rpVx(:))^2);
     prim_res_w(iter) = norm(rpW(:));
     prim_res_q(iter) = norm(rpQ(:));
-    
+
     % dual residuals updates
     dual_res_u(iter) = rho_u*norm(Hs_new(:) - Hs_old(:));
     dual_res_v(iter) = rho_v*sqrt( norm(Dy_s_new(:)-Dy_s_old(:))^2 + ...
